@@ -110,6 +110,11 @@ static void authenticate_response_signature(struct message *response,
 
     /* Log */
     dump_bytes("Signature", signature_buffer, signature_len);
+
+    /* Free */
+    free(buffer_to_sign);
+    free(digest);
+    free(signature_buffer);
 }
 
 static void authenticate_response_sw(struct message *response,
@@ -221,7 +226,6 @@ struct message *raw_authenticate_check(const struct message *request)
         &key_handle_size
     );
 
-
     /* Privkey */
     size_t privkey_size = key_handle_size - U2F_APP_PARAM_SIZE;
     dump_bytes("App Param Key:", key_handle + privkey_size,
@@ -252,12 +256,15 @@ struct message *raw_authenticate_check(const struct message *request)
     /* Dump response */
     size_t response_buffer_size =
         packet_init_get_bcnt(response->init_packet);
-    uint8_t *reponse_buffer = xmalloc(response_buffer_size);
-    message_read(response, reponse_buffer, 0, response_buffer_size);
-    dump_bytes("Message", reponse_buffer, response_buffer_size);
+    uint8_t *response_buffer = xmalloc(response_buffer_size);
+    message_read(response, response_buffer, 0, response_buffer_size);
+    dump_bytes("Message", response_buffer, response_buffer_size);
 
     /* Free */
-    // TODO
+    free(key_handle_cipher);
+    free(key_handle);
+    free(request_buffer);
+    free(response_buffer);
 
     return response;
 }
@@ -322,12 +329,16 @@ struct message *raw_authenticate_enforce(
     /* Dump response */
     size_t response_buffer_size =
         packet_init_get_bcnt(response->init_packet);
-    uint8_t *reponse_buffer = xmalloc(response_buffer_size);
-    message_read(response, reponse_buffer, 0, response_buffer_size);
-    dump_bytes("Message", reponse_buffer, response_buffer_size);
+    uint8_t *response_buffer = xmalloc(response_buffer_size);
+    message_read(response, response_buffer, 0, response_buffer_size);
+    dump_bytes("Message", response_buffer, response_buffer_size);
 
     /* Free */
-    // TODO
+    free(key_handle_cipher);
+    free(key_handle);
+    EC_KEY_free(key);
+    free(request_buffer);
+    free(response_buffer);
 
     return response;
 }

@@ -79,7 +79,6 @@ static inline void dump_bytes(const char *str,
     if ((i + 1) % 16 != 0)
         puts("");
     puts("----------------------------");
-
 }
 
 #endif

@@ -42,6 +42,9 @@ static void register_response_pubkey(struct message *response,
 
     /* Log */
     dump_bytes("Pubkey", pubkey_buffer, pubkey_size);
+
+    /* Free */
+    free(pubkey_buffer);
 }
 
 
@@ -141,7 +144,6 @@ static void register_response_signature(
     uint8_t *digest = NULL;
     size_t digest_len =
         crypto_hash(buffer_to_sign, buffer_to_sign_size, &digest);
-    free(buffer_to_sign);
 
     /* Sign */
     uint8_t *signature_buffer = NULL;
@@ -154,6 +156,12 @@ static void register_response_signature(
 
     /* Log */
     dump_bytes("Signature", signature_buffer, signature_len);
+
+    /* Free */
+    free(pubkey_buffer);
+    free(buffer_to_sign);
+    free(digest);
+    free(signature_buffer);
 }
 
 static void register_response_sw(struct message *response,
@@ -197,6 +205,9 @@ static uint8_t *register_build_plain_key_handle(
         U2F_APP_PARAM_SIZE);
     dump_bytes("Key handle", key_handle, key_handle_size);
     
+    /* Free */
+    free(key_buffer);
+
     return key_handle;
 }
 
@@ -296,7 +307,13 @@ struct message *raw_register_handler(const struct message *request)
     dump_bytes("Message", reponse_buffer, response_buffer_size);
 
     /* Free */
-    // TODO
+    EC_KEY_free(privkey);
+    EC_KEY_free(pubkey);
+    free(key_handle);
+    free(key_handle_cipher);
+    free(x509_buffer);
+    free(request_buffer);
+    free(reponse_buffer);
 
     return response;
 }
