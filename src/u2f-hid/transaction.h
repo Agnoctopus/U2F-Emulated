@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#include "packet.h"
 #include "message.h"
+#include "packet.h"
 
 
 #define TIMEOUT_SECONDS 5
@@ -29,7 +29,7 @@ bool transaction_on_going(void);
 /**
 ** \brief Chec if a transaction is on going with a cid
 **
-** \param The cid we want to check
+** \param cid The cid we want to check
 ** \return true: a transaction is ongoin with the cid
 */
 bool transaction_cid_in(uint32_t cid);
@@ -40,6 +40,7 @@ bool transaction_cid_in(uint32_t cid);
 ** \param message The actual request message
 */
 void transaction_start(struct message *message);
+
 /**
 ** \brief Stop the actual transaction
 */

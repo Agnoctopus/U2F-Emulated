@@ -4,9 +4,65 @@
 #include <string.h>
 
 #include "message.h"
+
 #include "../device/uhid.h"
 #include "../utils/xalloc.h"
 
+
+/**
+** \brief Get the size of the last packet of a message
+**
+** \param message The message
+** \return The size of the last packet
+*/
+static size_t message_last_packet_size(const struct message *message)
+{
+    /* Get message size */
+    size_t message_size = packet_init_get_bcnt(message->init_packet);
+
+    /* Get nb packets */
+    size_t nb_packets = message_nb_packets(message);
+    if (nb_packets == 0)
+        return 0;
+
+    /* Get max message size */
+    size_t max_message_size = message_data_max(nb_packets);
+
+    /* Remaine size on last packet */
+    size_t remaining_size = max_message_size - message_size;
+
+    /* Are we in first or nth packet */
+    if (nb_packets == 1)
+        return PACKET_INIT_DATA_SIZE - remaining_size;
+    return PACKET_CONT_DATA_SIZE - remaining_size;
+}
+
+/**
+** \brief Get the nth message part of a message
+**
+** \param message The message
+** \param nth The nth part to get
+** \return The nth message part
+*/
+static const struct message_part *
+message_get_nth_message_part(
+        const struct message *message, size_t nth)
+{
+    /* Null case */
+    if (message->cont.begin == NULL)
+        return NULL;
+
+    /* Loop nth packets */
+    const struct message_part *part =
+        message->cont.begin;
+    for (size_t i = 0; i < nth; ++i)
+    {
+        part = part->next;
+        if (part == NULL)
+            return NULL;
+    }
+    return part;
+}
 
 struct message *message_new(struct packet_init *init_packet)
 {
@@ -44,39 +100,6 @@ struct message *message_new_from_data(uint32_t cid, uint8_t cmd,
         return NULL;
     }
     return message;
-}
-
-
-void message_add_part(struct message *message,
-        struct packet_cont *cont_packet)
-{
-    /* Allocate */
-    struct message_part *message_part =
-        xmalloc(sizeof(struct message_part));
-
-    /* Init */
-    message_part->packet = cont_packet;
-    message_part->next = NULL;
-
-    /* Add */
-    if (message->cont.begin == NULL)
-    {
-        /* Seq */
-        cont_packet->seq = 0;
-
-        /* Pointer */
-        message->cont.begin = message_part;
-        message->cont.end = message->cont.begin;
-    }
-    else
-    {
-        /* Seq */
-        cont_packet->seq = message->cont.end->packet->seq + 1;
-
-        /* Pointer */
-        message->cont.end->next = message_part;
-        message->cont.end = message_part;
-    }
 }
 
 size_t message_data_nb_packets(size_t size)
@@ -133,7 +156,6 @@ size_t message_nb_packets(const struct message *message)
     return nb_packets_data;
 }
 
-
 size_t message_data_max(size_t nb_packets)
 {
     if (nb_packets == 0)
@@ -145,26 +167,36 @@ size_t message_data_max(size_t nb_packets)
         * PACKET_CONT_DATA_SIZE;
 }
 
-static size_t message_last_packet_size(const struct message *message)
+void message_add_part(struct message *message,
+        struct packet_cont *cont_packet)
 {
-    /* Get message size */
-    size_t message_size = packet_init_get_bcnt(message->init_packet);
+    /* Allocate */
+    struct message_part *message_part =
+        xmalloc(sizeof(struct message_part));
 
-    /* Get nb packets */
-    size_t nb_packets = message_nb_packets(message);
-    if (nb_packets == 0)
-        return 0;
+    /* Init */
+    message_part->packet = cont_packet;
+    message_part->next = NULL;
 
-    /* Get max message size */
-    size_t max_message_size = message_data_max(nb_packets);
+    /* Add */
+    if (message->cont.begin == NULL)
+    {
+        /* Seq */
+        cont_packet->seq = 0;
 
-    /* Remaine size on last packet */
-    size_t remaining_size = max_message_size - message_size;
+        /* Pointer */
+        message->cont.begin = message_part;
+        message->cont.end = message->cont.begin;
+    }
+    else
+    {
+        /* Seq */
+        cont_packet->seq = message->cont.end->packet->seq + 1;
 
-    /* Are we in first or nth packet */
-    if (nb_packets == 1)
-        return PACKET_INIT_DATA_SIZE - remaining_size;
-    return PACKET_CONT_DATA_SIZE - remaining_size;
+        /* Pointer */
+        message->cont.end->next = message_part;
+        message->cont.end = message_part;
+    }
 }
 
 void message_add_data(struct message *message,
@@ -242,42 +274,6 @@ void message_add_data(struct message *message,
     message_add_part(message, packet);
 }
 
-void message_send(int fd, struct message *message)
-{
-    /* Init packet */
-    uhid_device_send_input(fd, message->init_packet, PACKET_SIZE);
-
-    /* Rest of teh packers */
-    struct message_part *part = message->cont.begin;
-    while (part != NULL)
-    {
-        /* Send part */
-        uhid_device_send_input(fd, part->packet, PACKET_SIZE);
-
-        part = part->next;
-    }
-}
-
-static const struct message_part *
-message_get_nth_message_part(
-        const struct message *message, size_t nth)
-{
-    /* Null case */
-    if (message->cont.begin == NULL)
-        return NULL;
-
-    /* Loop nth packets */
-    const struct message_part *part =
-        message->cont.begin;
-    for (size_t i = 0; i < nth; ++i)
-    {
-        part = part->next;
-        if (part == NULL)
-            return NULL;
-    }
-    return part;
-}
-
 size_t message_read(const struct message *message, uint8_t *buffer,
         size_t offset, size_t size)
 {
@@ -352,6 +348,23 @@ size_t message_read(const struct message *message, uint8_t *buffer,
             part->packet->data,
             size);
     return readed + size;
+}
+
+
+void message_send(int fd, struct message *message)
+{
+    /* Init packet */
+    uhid_device_send_input(fd, message->init_packet, PACKET_SIZE);
+
+    /* Rest of teh packers */
+    struct message_part *part = message->cont.begin;
+    while (part != NULL)
+    {
+        /* Send part */
+        uhid_device_send_input(fd, part->packet, PACKET_SIZE);
+
+        part = part->next;
+    }
 }
 
 void message_free(struct message *message)

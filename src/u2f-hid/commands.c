@@ -1,10 +1,11 @@
-#include "commands.h"
-#include "../u2f-raw/raw_message.h"
-
 #include <err.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "commands.h"
+
+#include "../u2f-raw/raw_message.h"
 
 
 const char *error_msg(int error_nb)
@@ -47,14 +48,26 @@ struct message *cmd_generate_error(uint32_t cid, uint8_t error)
     return message_new(packet);
 }
 
+/**
+** \brief The command handler
+*/
+typedef
+struct message *(*cmd_handler)(const struct message *request);
 
-
-static struct message *cmd_init_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_INIT
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_init_handler(
+        const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Init\n");
 
     /* Check message size*/
-    if (packet_init_get_bcnt(message->init_packet)
+    if (packet_init_get_bcnt(request->init_packet)
             != U2FHID_INIT_BCNT)
         return NULL;
 
@@ -62,11 +75,12 @@ static struct message *cmd_init_handler(const struct message *message)
             CMD_INIT, 17);
 
     /* Get payload */
-    struct cmd_init_payload_out *payload =
-        (struct cmd_init_payload_out *)packet->data;
+    struct cmd_init_response_payload *payload =
+        (struct cmd_init_response_payload *)packet->data;
 
     /* Fill payload */
-    memcpy(payload->nonce, message->init_packet->data, U2FHID_INIT_BCNT);
+    memcpy(payload->nonce, request->init_packet->data,
+        U2FHID_INIT_BCNT);
     payload->cid = 2;
     payload->protocol_ver = PROTOCOL_VERSION;
     payload->maj_dev_ver = MAJ_DEV_VERSION;
@@ -80,55 +94,103 @@ static struct message *cmd_init_handler(const struct message *message)
     return response;
 }
 
-static struct message *cmd_ping_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_PING
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_ping_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Ping\n");
-    (void) message;
+    (void) request;
     return NULL;
 }
 
-static struct message *cmd_msg_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_MSG
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_msg_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Msg\n");
-    return raw_msg_handler(message);
+    return raw_msg_handler(request);
 }
 
-static struct message *cmd_lock_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_LOCK
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_lock_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Lock\n");
-    (void) message;
+    (void) request;
     return NULL;
 }
 
-static struct message *cmd_wink_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_WINK
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_wink_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Wink\n");
-    (void) message;
+    (void) request;
     return NULL;
 }
 
-static struct message *cmd_sync_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_SYNC
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_sync_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Sync\n");
-    (void) message;
+    (void) request;
     return NULL;
 }
 
-static struct message *cmd_error_handler(const struct message *message)
+/**
+** \brief The Handler for CMD_ERROR
+**
+** \param request The request
+** \return The response
+*/
+static struct message *cmd_error_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "   Error\n");
-    (void) message;
+    (void) request;
     return NULL;
 }
 
 
 /**
-** The command handler
+** \brief Get the command handler for a specific command
+**
+** \param cmd The command
+** \return The command handler
 */
-typedef struct message *(*cmd_handler)(const struct message *message);
-
-
-cmd_handler cmd_get_handler(uint8_t cmd)
+static cmd_handler cmd_get_handler(uint8_t cmd)
 {
     struct cmd_entry
     {
@@ -160,18 +222,18 @@ cmd_handler cmd_get_handler(uint8_t cmd)
     return NULL;
 }
 
-struct message *cmd_process(const struct message *message)
+struct message *cmd_process(const struct message *request)
 {
     /* Get the handler */
-    cmd_handler handler = cmd_get_handler(message->init_packet->cmd);
+    cmd_handler handler = cmd_get_handler(request->init_packet->cmd);
 
     /* Check */
     if (handler == NULL)
-        return cmd_generate_error(message->init_packet->cid,
+        return cmd_generate_error(request->init_packet->cid,
                 ERROR_INVALID_CMD);
 
     /* Handle it */
-    struct message *response = handler(message);
+    struct message *response = handler(request);
 
     return response;
 }

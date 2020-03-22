@@ -10,17 +10,19 @@
 
 
 /**
-** The command handler
+** \brief Event handler
 */
-typedef void (*event_handler)(int fd, const struct uhid_event *event);
+typedef
+void (*event_handler)(int fd, const struct uhid_event *event);
 
 /**
-** \biref The output event handler
+** \brief The output event handler
 **
 ** \param fd The fd of the device
-** \param The event
+** \param event The event
 */
-void event_output_handler(int fd, const struct uhid_event *event)
+static void event_output_handler(int fd,
+    const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_OUTPUT\n");
 
@@ -41,12 +43,13 @@ void event_output_handler(int fd, const struct uhid_event *event)
 }
 
 /**
-** \biref The start event handler
+** \brief The start event handler
 **
 ** \param fd The fd of the device
-** \param The event
+** \param event The event
 */
-void event_start_handler(int fd, const struct uhid_event *event)
+static void event_start_handler(int fd,
+    const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_START\n");
     (void)fd;
@@ -57,9 +60,10 @@ void event_start_handler(int fd, const struct uhid_event *event)
 ** \brief The stop event handler
 **
 ** \param fd The fd of the device
-** \param The event
+** \param event The event
 */
-void event_stop_handler(int fd, const struct uhid_event *event)
+static void event_stop_handler(int fd,
+    const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_STOP\n");
     (void)fd;
@@ -70,9 +74,10 @@ void event_stop_handler(int fd, const struct uhid_event *event)
 ** \brief The open event handler
 **
 ** \param fd The fd of the device
-** \param The event
+** \param event The event
 */
-void event_open_handler(int fd, const struct uhid_event *event)
+static void event_open_handler(int fd,
+    const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_OPEN\n");
     (void)fd;
@@ -82,10 +87,11 @@ void event_open_handler(int fd, const struct uhid_event *event)
 /**
 ** \brief The close event handler
 **
-** \param fd The fd of the device
-** \param The event
+** \param fd fd The fd of the device
+** \param event The event
 */
-void event_close_handler(int fd, const struct uhid_event *event)
+static void event_close_handler(int fd,
+    const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_CLOSE\n");
     (void)fd;
@@ -125,12 +131,7 @@ static event_handler event_get_handler(uint32_t event)
     return NULL;
 }
 
-/**
-** \brief handle an incoming event
-**
-** \param fd The fd of teh device
-*/
-void envent_device_handle(int fd)
+void event_device_handle(int fd)
 {
     /* Get the event */
     struct uhid_event event;

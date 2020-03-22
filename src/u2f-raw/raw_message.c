@@ -14,18 +14,25 @@
 
 
 /**
-** The command handler
+** \brief The raw message handler
 */
-typedef struct message *(*raw_handler)(const struct message *message);
+typedef
+struct message *(*raw_handler)(const struct message *request);
 
-
-struct message *raw_version_handler(const struct message *message)
+/**
+** \brief The Handler for U2F_VERSION
+**
+** \param request The request
+** \return The response
+*/
+static struct message *raw_version_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "       version\n");
-    (void) message;
 
     struct packet_init *packet = packet_init_new(
-            message->init_packet->cid, CMD_MSG,
+            request->init_packet->cid, CMD_MSG,
             strlen(VERSION_STR) + 2);
 
     /* Fill payload */
@@ -39,6 +46,12 @@ struct message *raw_version_handler(const struct message *message)
     return response;
 }
 
+/**
+** \brief Get the raw message handler for a specific command
+**
+** \param cmd The raw message command
+** \return The raw message handler
+*/
 raw_handler raw_msg_get_handler(uint8_t cmd)
 {
     struct cmd_entry
@@ -67,16 +80,16 @@ raw_handler raw_msg_get_handler(uint8_t cmd)
     return NULL;
 }
 
-struct message *raw_msg_handler(const struct message *message)
+struct message *raw_msg_handler(const struct message *request)
 {
     /* Get frame header */
     struct frame_header *header = (struct frame_header*)
-        message->init_packet->data;
+        request->init_packet->data;
 
     /* Get raw handler */
     raw_handler handler = raw_msg_get_handler(header->ins);
     if (handler == NULL)
         return NULL;
 
-    return handler(message);
+    return handler(request);
 }

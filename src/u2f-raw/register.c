@@ -8,15 +8,17 @@
 #include "raw_message.h"
 #include "register.h"
 
+#include "../crypto.h"
+#include "../utils/xalloc.h"
 #include "../u2f-hid/commands.h"
 #include "../u2f-hid/packet.h"
 #include "../u2f-hid/message.h"
 
 
-#include "../crypto.h"
-#include "../utils/xalloc.h"
-
-
+/** \brief Add reserved byte to the register response
+**
+** \param response The response
+*/
 static void register_response_reserved(struct message *response)
 {
     /* Reserved buffer */
@@ -29,6 +31,11 @@ static void register_response_reserved(struct message *response)
     dump_bytes("Reserved", (uint8_t *)"\x05", sizeof(reserved));
 }
 
+/** \brief Add pubkey bytes to the register response
+**
+** \param response The response
+** \param pubkey The pubkey
+*/
 static void register_response_pubkey(struct message *response,
     const EC_KEY *pubkey)
 {
@@ -47,7 +54,12 @@ static void register_response_pubkey(struct message *response,
     free(pubkey_buffer);
 }
 
-
+/** \brief Add ciphered key handle to the register response
+**
+** \param response The response
+** \param key_handle_cipher The ciphered key handle
+** \param key_handle_cipher_size The ciphered key handle size
+*/
 static void register_response_key_handle(struct message *response,
     const uint8_t *key_handle_cipher,
     size_t key_handle_cipher_size)
@@ -74,6 +86,12 @@ static void register_response_key_handle(struct message *response,
         key_handle_cipher_size);
 }
 
+/** \brief Add x509 bytes to the register response
+**
+** \param response The response
+** \param x509_buffer The x509 buffer
+** \param x509_buffer_size The x509 buffer size
+*/
 static void register_reponse_x509(struct message *response,
     const uint8_t *x509_buffer, size_t x509_buffer_size)
 {
@@ -84,6 +102,14 @@ static void register_reponse_x509(struct message *response,
     dump_bytes("X509", x509_buffer, x509_buffer_size);
 }
 
+/** \brief Add signature to the register response
+**
+** \param response The x509 buffer
+** \param key_handle_cipher The ciphered key handle
+** \param key_handle_cipher_size The ciphered key handle size
+** \param pubkey The pubkey
+** \param params The register params
+*/
 static void register_response_signature(
     struct message *response,
     const uint8_t *key_handle_cipher,
@@ -164,6 +190,12 @@ static void register_response_signature(
     free(signature_buffer);
 }
 
+/**
+** \brief Add status code to the authentification response
+**
+** \param response The response
+** \param status The status code
+*/
 static void register_response_sw(struct message *response,
     uint32_t status)
 {
@@ -177,6 +209,14 @@ static void register_response_sw(struct message *response,
     dump_bytes("SW", sw, 2);
 }
 
+/**
+** \brief Build the plain key handle
+**
+** \param privkey The private key
+** \param params The register params
+** \param size The ref size of the plain key handle
+** \return The plain key handle
+*/
 static uint8_t *register_build_plain_key_handle(
     EC_KEY *privkey, const struct registration_params *params,
     size_t *size)
@@ -211,6 +251,14 @@ static uint8_t *register_build_plain_key_handle(
     return key_handle;
 }
 
+/**
+** \brief Encrypt the key handle
+**
+** \param key_handle The key handle
+** \param key_handle_size The key handle size
+** \param size The ref size of the ciphered key handle
+** \return The ciphered key handle
+*/
 static uint8_t *register_encrypt_key_handle(
     const uint8_t *key_handle, size_t key_handle_size, size_t *size)
 {
@@ -225,16 +273,17 @@ static uint8_t *register_encrypt_key_handle(
     *size = key_handle_cipher_size;
 
     /* Log */
-    dump_bytes("Key handle Ciphered size", (uint8_t *)size, sizeof(size));
+    dump_bytes("Key handle Ciphered size", (uint8_t *)size,
+        sizeof(size));
     dump_bytes("Key handle Ciphered", key_handle_cipher,
         key_handle_cipher_size);
 
     return key_handle_cipher;
 }
 
-
 struct message *raw_register_handler(const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "       Register\n");
 
     /* Request */

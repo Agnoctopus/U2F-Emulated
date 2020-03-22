@@ -26,7 +26,6 @@ EC_KEY *crypto_ec_generate_key(void);
 ** \brief Get the pem reprensentation of a private key
 **
 ** \param privkey The private key
-** \param pubkey The public key
 ** \return The pem representation
 */
 char *crypto_ec_privkey_to_pem(EC_KEY *privkey);
@@ -34,7 +33,6 @@ char *crypto_ec_privkey_to_pem(EC_KEY *privkey);
 /**
 ** \brief Get the pem reprensentation of a public key
 **
-** \param pubkey The public key
 ** \param pubkey The public key
 ** \return The pem representation
 */
@@ -107,7 +105,7 @@ unsigned int crypto_ec_sign(const unsigned char *digest,
 ** \brief Encrypt data using aes
 **
 ** \param data The data to encrypt
-** \param size The data size
+** \param data_len The data size
 ** \param buffer The resulting buffer where cipher data is put
 ** \return The size of the buffer
 */

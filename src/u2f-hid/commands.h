@@ -31,13 +31,10 @@
 #define ERROR_CMD_LOCK_RQR  7
 #define ERROR_SYNC_FAILED   8
 
-
-struct cmd_init_payload_in
-{
-    uint8_t nonce[8]; /**< Nonce */
-} __packed;
-
-struct cmd_init_payload_out
+/**
+** \brief The command init reponse payload
+*/
+struct cmd_init_response_payload
 {
     uint8_t nonce[8]; /**< Nonce */
     uint32_t cid; /**< Channel id */
@@ -57,8 +54,21 @@ struct cmd_init_payload_out
 */
 const char *error_msg(int error_nb);
 
+/**
+** \brief Generate a message error response
+**
+** \param cid Channel id
+** \param error The error
+** \return The error message reponse generated
+*/
 struct message *cmd_generate_error(uint32_t cid, uint8_t error);
 
-struct message *cmd_process(const struct message *message);
+/**
+** \brief Process a command request
+**
+** \param request The command request message
+** \return The reponse generated bu the request process
+*/
+struct message *cmd_process(const struct message *request);
 
 #endif

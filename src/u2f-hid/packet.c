@@ -4,6 +4,7 @@
 #include "commands.h"
 #include "packet.h"
 #include "transaction.h"
+
 #include "../utils/xalloc.h"
 
 
@@ -11,7 +12,8 @@ struct packet_init *packet_init_new(uint32_t cid, uint8_t cmd,
         uint16_t bcnt)
 {
     /* Allocate */
-    struct packet_init *packet = xcalloc(1, sizeof(struct packet_init));
+    struct packet_init *packet = xcalloc(1,
+        sizeof(struct packet_init));
 
     /* Init */
     packet->cid = cid;
@@ -19,13 +21,13 @@ struct packet_init *packet_init_new(uint32_t cid, uint8_t cmd,
     packet_init_set_bcnt(packet, bcnt);
 
     return packet;
-
 }
 
 struct packet_cont *packet_cont_new(uint32_t cid, uint8_t seq)
 {
     /* Allocate */
-    struct packet_cont *packet = xcalloc(1, sizeof(struct packet_cont));
+    struct packet_cont *packet = xcalloc(1,
+        sizeof(struct packet_cont));
 
     /* Init */
     packet->cid = cid;
@@ -34,6 +36,23 @@ struct packet_cont *packet_cont_new(uint32_t cid, uint8_t seq)
     return packet;
 }
 
+void *packet_copy(const void *packet)
+{
+    /* Allocate */
+    void *packet_cpy = xmalloc(PACKET_SIZE);
+
+    /* Copy */
+    memcpy(packet_cpy, packet, PACKET_SIZE);
+
+    return packet_cpy;
+}
+
+/**
+** \brief The packet init handler
+**
+** \param packet The init packet
+** \return The response or null if no response
+*/
 static struct message *packet_init_handle(
         const struct packet_init *packet)
 {
@@ -57,6 +76,12 @@ static struct message *packet_init_handle(
     return NULL;
 }
 
+/**
+** \brief The packet cont handler
+**
+** \param packet The cont packet
+** \return The response or null if no response
+*/
 static struct message *packet_cont_handle(
         const struct packet_cont *packet)
 {
@@ -85,17 +110,6 @@ static struct message *packet_cont_handle(
     }
 
     return NULL;
-}
-
-void *packet_copy(const void *packet)
-{
-    /* Allocate */
-    void *packet_cpy = xmalloc(PACKET_SIZE);
-
-    /* Copy */
-    memcpy(packet_cpy, packet, PACKET_SIZE);
-
-    return packet_cpy;
 }
 
 struct message *packet_handle(const void *packet, size_t size)

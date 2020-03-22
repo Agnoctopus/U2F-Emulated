@@ -4,8 +4,8 @@
 /**
 ** \brief Event device handler
 **
-** \param The fd of the device
+** \param fd The fd of the device
 */
-void envent_device_handle(int fd);
+void event_device_handle(int fd);
 
 #endif

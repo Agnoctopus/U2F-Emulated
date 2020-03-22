@@ -2,6 +2,7 @@
 #define RAW_MESSAGE_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include "../u2f-hid/message.h"
 
@@ -35,7 +36,6 @@
 #define U2F_CHA_PARAM_SIZE 32
 #define U2F_APP_PARAM_SIZE 32
 
-
 /**
 ** \brief Registration parameter
 */
@@ -47,8 +47,6 @@ struct registration_params
     uint8_t application_param[U2F_APP_PARAM_SIZE];
 } __packed;
 
-
-
 struct authentification_params
 {
     /** SHA-256 client data */
@@ -59,15 +57,26 @@ struct authentification_params
     uint8_t key_handle[];
 } __packed;
 
+/**
+** \brief The raw message handler
+**
+** \param request The raw message request
+** \return The response
+*/
+struct message *raw_msg_handler(const struct message *request);
 
-struct message *raw_msg_handler(const struct message *message);
-
-#include <stdio.h>
-static inline void dump_bytes(const char *str,
+/**
+** \brief Dump bytes with description
+**
+** \param desc The description
+** \param data The data to print
+** \param size The data size
+*/
+static inline void dump_bytes(const char *desc,
     const uint8_t *data, size_t size)
 {
     puts("----------------------------");
-    printf("%s: %zu:\n", str, size);
+    printf("%s: %zu:\n", desc, size);
 
     size_t i = 0;
     for (i = 0; i < size; ++i)

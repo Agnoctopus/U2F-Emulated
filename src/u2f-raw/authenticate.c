@@ -17,6 +17,12 @@
 #include "authenticate.h"
 
 
+/**
+** \brief Add user precense to the authentification response
+**
+** \param response The response
+** \param presence The presence
+*/
 static void authenticate_response_user_pre(struct message *response,
     uint8_t presence)
 {
@@ -27,6 +33,12 @@ static void authenticate_response_user_pre(struct message *response,
     dump_bytes("User precense", &presence, sizeof(presence));
 }
 
+/**
+** \brief Add counter to the authentification response
+**
+** \param response The response
+** \param counter The counter
+*/
 static void authenticate_response_counter(struct message *response,
     uint32_t counter)
 {
@@ -44,6 +56,15 @@ static void authenticate_response_counter(struct message *response,
     dump_bytes("counter", counter_buffer, sizeof(uint32_t));
 }
 
+/**
+** \brief Add the signature to the authentification response
+**
+** \param response The response
+** \param key The key used to sign
+** \param params The authentification params
+** \param presence The user presence
+** \param counter The counter
+*/
 static void authenticate_response_signature(struct message *response,
     EC_KEY *key,
     const struct authentification_params *params,
@@ -117,6 +138,12 @@ static void authenticate_response_signature(struct message *response,
     free(signature_buffer);
 }
 
+/**
+** \brief Add status code to the authentification response
+**
+** \param response The response
+** \param status The status code
+*/
 static void authenticate_response_sw(struct message *response,
     uint32_t status)
 {
@@ -130,7 +157,14 @@ static void authenticate_response_sw(struct message *response,
     dump_bytes("SW", sw, 2);
 }
 
-
+/**
+** \brief Get the ciphered key handle from the request
+**
+** \param request The request
+** \param params The authentification response
+** \param size The ref size of the ciphered key handle
+** \return The ciphered key handle
+*/
 static uint8_t *authenticate_get_key_handle_cipher(
     const struct message *request,
     const struct authentification_params *params,
@@ -161,6 +195,14 @@ static uint8_t *authenticate_get_key_handle_cipher(
     return key_handle_cipher;
 }
 
+/**
+** \brief Decrypt ciphered key handle
+**
+** \param key_handle_cipher The ciphered key handle
+** \param key_handle_cipher_size The ciphered key handle size
+** \param size The ref size of the plain key handle
+** \return The plain key handle
+*/
 static uint8_t *authenticate_decrypt_key_handle_cipher(
     const uint8_t *key_handle_cipher,
     size_t key_handle_cipher_size,
@@ -183,6 +225,13 @@ static uint8_t *authenticate_decrypt_key_handle_cipher(
     return key_handle;
 }
 
+/**
+** \brief Get the pubkey from the key handle
+**
+** \param key_handle The plain key handle
+** \param key_handle_size The plain key handle size
+** \return The pubkey
+*/
 static EC_KEY *authenticate_get_pubkey_from_key_handle(
     const uint8_t *key_handle, size_t key_handle_size)
 {
@@ -197,7 +246,14 @@ static EC_KEY *authenticate_get_pubkey_from_key_handle(
     return key;
 }
 
-struct message *raw_authenticate_check(const struct message *request)
+/**
+** \brief Handle check authentification request
+**
+** \param request The check authentification request message
+** \return The response
+*/
+static struct message *raw_authenticate_check(
+    const struct message *request)
 {
     /* Log */
     fprintf(stderr, "           Check\n");
@@ -269,7 +325,13 @@ struct message *raw_authenticate_check(const struct message *request)
     return response;
 }
 
-struct message *raw_authenticate_enforce(
+/**
+** \brief Handle enforce authentification request
+**
+** \param request The enforce authentification request message
+** \return The response
+*/
+static struct message *raw_authenticate_enforce(
     const struct message *request)
 {
     /* Log */
@@ -343,34 +405,46 @@ struct message *raw_authenticate_enforce(
     return response;
 }
 
-struct message *raw_authenticate_no_enforce(const struct message *message)
+/**
+** \brief Handle no enforce authentification request
+**
+** \param request The no enforce authentification request message
+** \return The response
+*/
+static struct message *raw_authenticate_no_enforce(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "           No enforce\n");
 
-    (void)message;
+    (void)request;
     return NULL;
 }
 
-struct message *raw_authenticate_handler(const struct message *message)
+struct message *raw_authenticate_handler(
+    const struct message *request)
 {
+    /* Log */
     fprintf(stderr, "       Authenticate\n");
 
     /* Get frame header */
     struct frame_header *header = (struct frame_header *)
-                                      message->init_packet->data;
+                                      request->init_packet->data;
 
+    /* handle request based on type */
     switch (header->p1)
     {
     case U2F_AUTH_CHECK:
-        return raw_authenticate_check(message);
+        return raw_authenticate_check(request);
     case U2F_AUTH_ENFORCE:
-        return raw_authenticate_enforce(message);
+        return raw_authenticate_enforce(request);
     case U2F_AUTH_NO_ENFORCE:
-        return raw_authenticate_no_enforce(message);
+        return raw_authenticate_no_enforce(request);
     default:
         warnx("Unknow authentification type: %d", header->p1);
         return NULL;
     }
+    /* Should not be ewecuted */
 
     return NULL;
 }

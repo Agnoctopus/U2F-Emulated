@@ -151,7 +151,8 @@ char *crypto_ec_privkey_to_pem(EC_KEY *privkey)
         return NULL;
     }
     /* Write privkey yo the bio */
-    PEM_write_bio_ECPrivateKey(privkeybio, privkey, NULL, NULL, 0, 0, NULL);
+    PEM_write_bio_ECPrivateKey(privkeybio, privkey, NULL, NULL,
+        0, 0, NULL);
 
     /* Get pem */
     char *buffer = crypto_biokey_to_pem(privkeybio);
@@ -586,7 +587,7 @@ static FILE *crypto_open(const char *pathname)
 /**
 ** \brief Get the private key from path
 **
-** \param filename The filenamee
+** \param pathname The pathname
 ** \return The private key
 */
 static EC_KEY *crypto_ec_privkey_from_path(const char *pathname)
@@ -627,7 +628,8 @@ int crypto_setup(void)
     g_x509 = crypto_x509_from_path("keys/server.pem");
 
     /* Pub/Prib Key */
-    g_privkey = crypto_ec_privkey_from_path("keys/prime256v1-key.pem");
+    g_privkey =
+        crypto_ec_privkey_from_path("keys/prime256v1-key.pem");
     g_pubkey = crypto_ec_pubkey_from_priv(g_privkey);
 
     /* AES */

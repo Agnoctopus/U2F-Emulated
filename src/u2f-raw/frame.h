@@ -6,6 +6,9 @@
 /* Packed macro */
 #define __packed __attribute__((__packed__))
 
+/**
+** \brief APDU Frame header
+*/
 struct frame_header
 {
     uint8_t cla;
