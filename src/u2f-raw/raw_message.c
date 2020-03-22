@@ -12,11 +12,6 @@
 #include "../crypto.h"
 #include "../utils/xalloc.h"
 
-struct key_handle
-{
-    uint8_t key[32];
-    uint8_t app_param[32];
-};
 
 /**
 ** The command handler
