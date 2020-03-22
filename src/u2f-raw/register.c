@@ -99,7 +99,8 @@ static void register_response_signature(
     /* Signature */
     size_t buffer_to_sign_size =
         sizeof(rfu)
-        +  U2F_REG_PARAMS_SIZE
+        + U2F_APP_PARAM_SIZE
+        + U2F_CHA_PARAM_SIZE
         + key_handle_cipher_size
         + pubkey_size;
 
@@ -114,15 +115,15 @@ static void register_response_signature(
 
     /* App Param */
     memcpy(buffer_to_sign + index,
-        params->application_param,
-        U2F_REG_APP_PARAM_SIZE);
-    index += U2F_REG_APP_PARAM_SIZE;
+        &params->application_param,
+        U2F_APP_PARAM_SIZE);
+    index += U2F_APP_PARAM_SIZE;
 
     /* Challenge Param */
     memcpy(buffer_to_sign + index,
-        params->challenge_param,
-        U2F_REG_CHA_PARAM_SIZE);
-    index += U2F_REG_CHA_PARAM_SIZE;
+        &params->challenge_param,
+        U2F_CHA_PARAM_SIZE);
+    index += U2F_CHA_PARAM_SIZE;
 
     /* Key Handle */
     memcpy(buffer_to_sign + index,
@@ -134,6 +135,7 @@ static void register_response_signature(
     memcpy(buffer_to_sign + index,
         pubkey_buffer,
         pubkey_size);
+    index += pubkey_size;
 
     /* Digest */
     uint8_t *digest = NULL;
@@ -178,7 +180,7 @@ static uint8_t *register_build_plain_key_handle(
         crypto_ec_key_to_bytes(privkey, &key_buffer);
 
     /* Size */
-    size_t key_handle_size = key_size + U2F_REG_APP_PARAM_SIZE;
+    size_t key_handle_size = key_size + U2F_APP_PARAM_SIZE;
     *size = key_handle_size;
 
     /* Allocate key_handle */
@@ -187,12 +189,12 @@ static uint8_t *register_build_plain_key_handle(
     /* Init key_handle */
     memcpy(key_handle, key_buffer, key_size);
     memcpy(key_handle + key_size, params->application_param,
-        U2F_REG_APP_PARAM_SIZE);
+        U2F_APP_PARAM_SIZE);
 
     /* Log */
     dump_bytes("Privkey", key_buffer, key_size);
     dump_bytes("Registration params", params->application_param,
-        U2F_REG_APP_PARAM_SIZE);
+        U2F_APP_PARAM_SIZE);
     dump_bytes("Key handle", key_handle, key_handle_size);
     
     return key_handle;
@@ -212,7 +214,7 @@ static uint8_t *register_encrypt_key_handle(
     *size = key_handle_cipher_size;
 
     /* Log */
-    dump_bytes("Key handle size", (uint8_t *)size, sizeof(size));
+    dump_bytes("Key handle Ciphered size", (uint8_t *)size, sizeof(size));
     dump_bytes("Key handle Ciphered", key_handle_cipher,
         key_handle_cipher_size);
 
@@ -227,7 +229,7 @@ struct message *raw_register_handler(const struct message *request)
     /* Request */
     struct registration_params params;
     message_read(request, (uint8_t *)&params,
-        7, sizeof(struct registration_params));
+        U2F_APDU_HEADER_SIZE, sizeof(struct registration_params));
 
     /* New key */
     EC_KEY *privkey = crypto_ec_generate_key();

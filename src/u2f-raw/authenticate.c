@@ -53,10 +53,10 @@ static void authenticate_response_signature(struct message *response,
 {
     /* Signature */
     size_t buffer_to_sign_size =
-        U2F_REG_APP_PARAM_SIZE
+        U2F_APP_PARAM_SIZE
         + sizeof(presence)
         + sizeof(counter)
-        + U2F_REG_CHA_PARAM_SIZE;
+        + U2F_CHA_PARAM_SIZE;
 
     /* Buffer to sign */
     uint8_t *buffer_to_sign = xmalloc(buffer_to_sign_size);
@@ -66,8 +66,8 @@ static void authenticate_response_signature(struct message *response,
     /* App Param */
     memcpy(buffer_to_sign + index,
         &params->application_param,
-        U2F_AUTH_APP_PARAM_SIZE);
-    index += U2F_AUTH_APP_PARAM_SIZE;
+        U2F_APP_PARAM_SIZE);
+    index += U2F_APP_PARAM_SIZE;
 
     /* User precense */
     buffer_to_sign[index] = presence;
@@ -89,8 +89,8 @@ static void authenticate_response_signature(struct message *response,
     /* Challenge Param */
     memcpy(buffer_to_sign + index,
         &params->challenge_param,
-        U2F_AUTH_CHA_PARAM_SIZE);
-    index += U2F_AUTH_CHA_PARAM_SIZE;
+        U2F_CHA_PARAM_SIZE);
+    index += U2F_CHA_PARAM_SIZE;
 
     /* Digest */
     uint8_t *digest = NULL;
@@ -133,8 +133,8 @@ static uint8_t *authenticate_get_key_handle_cipher(
 {
     /* Offset */
     size_t offset = U2F_APDU_HEADER_SIZE
-        + U2F_AUTH_APP_PARAM_SIZE
-        + U2F_AUTH_CHA_PARAM_SIZE
+        + U2F_APP_PARAM_SIZE
+        + U2F_CHA_PARAM_SIZE
         + sizeof(params->key_handle_size);
 
     /* Size */
@@ -183,7 +183,7 @@ static EC_KEY *authenticate_get_pubkey_from_key_handle(
 {
 
     /* Privkey */
-    size_t privkey_size = key_handle_size - U2F_AUTH_APP_PARAM_SIZE;
+    size_t privkey_size = key_handle_size - U2F_APP_PARAM_SIZE;
     EC_KEY *key = crypto_ec_bytes_to_key(key_handle, privkey_size);
 
     /* Log */
@@ -223,14 +223,14 @@ struct message *raw_authenticate_check(const struct message *request)
 
 
     /* Privkey */
-    size_t privkey_size = key_handle_size - U2F_AUTH_APP_PARAM_SIZE;
+    size_t privkey_size = key_handle_size - U2F_APP_PARAM_SIZE;
     dump_bytes("App Param Key:", key_handle + privkey_size,
-        U2F_AUTH_APP_PARAM_SIZE);
+        U2F_APP_PARAM_SIZE);
     dump_bytes("App Param Client:", params.application_param,
-        U2F_AUTH_APP_PARAM_SIZE);
+        U2F_APP_PARAM_SIZE);
 
     if (memcmp(key_handle + privkey_size,
-        params.application_param, U2F_AUTH_APP_PARAM_SIZE) != 0)
+        params.application_param, U2F_APP_PARAM_SIZE) != 0)
     {
         /* Log */
         warnx("Mismatch in App Param");
