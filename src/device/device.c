@@ -35,7 +35,7 @@ static int device_loop(int fd)
             break;
         }
         if (pfds[0].revents & POLLIN)
-            envent_device_handle(fd);
+            event_device_handle(fd);
     }
 
     /* Sould be executed on HUP */
