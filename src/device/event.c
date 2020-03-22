@@ -34,7 +34,10 @@ void event_output_handler(int fd, const struct uhid_event *event)
 
     /* Send the response messageif exist */
     if (response != NULL)
+    {
         message_send(fd, response);
+        message_free(response);
+    }
 }
 
 /**

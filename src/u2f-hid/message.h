@@ -108,13 +108,18 @@ size_t message_read(const struct message *message, uint8_t *buffer,
 
 /**
 ** \brief Send the message to the kernel
+**
+** \param fd The fd of the device
+** \param message The message
 */
 void message_send(int fd, struct message *message);
 
 
 /**
 ** \brief Free a message
+**
+** \param message The message
 */
-void message_free(int fd, struct message *message);
+void message_free(struct message *message);
 
 #endif

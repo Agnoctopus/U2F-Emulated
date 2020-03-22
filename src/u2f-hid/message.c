@@ -1,10 +1,10 @@
 #include <err.h>
-#include <stddef.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "../device/uhid.h"
 #include "message.h"
+#include "../device/uhid.h"
 #include "../utils/xalloc.h"
 
 
@@ -354,8 +354,25 @@ size_t message_read(const struct message *message, uint8_t *buffer,
     return readed + size;
 }
 
-void message_free(int fd, struct message *message)
+void message_free(struct message *message)
 {
-    (void)fd;
-    (void)message;
+    /* Cont packets */
+    struct message_part *part = message->cont.begin;
+    while (part != NULL)
+    {
+        /* Tmp */
+        struct message_part *tmp = part->next;
+
+        /* Part */
+        free(part->packet);
+        free(part);
+
+        part = tmp;
+    }
+
+    /* Init packet */
+    free(message->init_packet);
+
+    /* Message */
+    free(message);
 }

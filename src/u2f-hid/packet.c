@@ -42,8 +42,15 @@ static struct message *packet_init_handle(
 
     if (packet_init_get_bcnt(request->init_packet)
             <= PACKET_INIT_DATA_SIZE)
-        return cmd_process(request);
+    {
+        /* Reponse */
+        struct message *response = cmd_process(request);
 
+        /* Free */
+        message_free(request);
+
+        return response;
+    }
     /* Transaction */
     transaction_start(request);
 
@@ -70,6 +77,9 @@ static struct message *packet_cont_handle(
 
         /* End transaction */
         transaction_stop();
+
+        /* Free */
+        message_free(request);
 
         return response;
     }

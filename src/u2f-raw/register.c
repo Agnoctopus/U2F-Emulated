@@ -21,7 +21,7 @@ static void register_response_reserved(struct message *response)
 {
     /* Reserved buffer */
     const uint8_t reserved[] = { '\x05' };
-    
+
     /* Add  to response */
     message_add_data(response, reserved, sizeof(reserved));
 
@@ -204,7 +204,7 @@ static uint8_t *register_build_plain_key_handle(
     dump_bytes("Registration params", params->application_param,
         U2F_APP_PARAM_SIZE);
     dump_bytes("Key handle", key_handle, key_handle_size);
-    
+
     /* Free */
     free(key_buffer);
 
@@ -263,7 +263,7 @@ struct message *raw_register_handler(const struct message *request)
         &params,
         &key_handle_size
         );
-    
+
     /* Cipher Key handle */
     size_t key_handle_cipher_size = 0;
     uint8_t *key_handle_cipher = register_encrypt_key_handle(

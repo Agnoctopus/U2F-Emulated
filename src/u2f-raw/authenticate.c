@@ -22,7 +22,7 @@ static void authenticate_response_user_pre(struct message *response,
 {
     /* Add  to response */
     message_add_data(response, &presence, sizeof(presence));
-  
+
     /* Log */
     dump_bytes("User precense", &presence, sizeof(presence));
 }
@@ -32,7 +32,7 @@ static void authenticate_response_counter(struct message *response,
 {
     /* Counter */
     uint8_t counter_buffer[sizeof(uint32_t)];
-    
+
     /* Fill it */
     counter_buffer[0] = counter & 0xFF;
     counter_buffer[1] = (counter >> 8) & 0xFF;
@@ -153,7 +153,7 @@ static uint8_t *authenticate_get_key_handle_cipher(
                 key_handle_cipher,
                 offset,
                 params->key_handle_size);
-            
+
     /* Log */
     dump_bytes("key_handle_cipher", key_handle_cipher,
         params->key_handle_size);
