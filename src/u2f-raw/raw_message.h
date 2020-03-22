@@ -24,6 +24,8 @@
 
 #define VERSION_STR "U2F_V2"
 
+#define U2F_APDU_HEADER_SIZE 7
+
 /* Authenticate bits */
 #define U2F_AUTH_CHECK 0x07
 #define U2F_AUTH_ENFORCE 0x03
@@ -34,6 +36,11 @@
 #define U2F_REG_APP_PARAM_SIZE 32
 #define U2F_REG_PARAMS_SIZE \
     (U2F_REG_CHA_PARAM_SIZE + U2F_REG_APP_PARAM_SIZE)
+
+/* Authentification params len */
+#define U2F_AUTH_CHA_PARAM_SIZE 32
+#define U2F_AUTH_APP_PARAM_SIZE 32
+
 
 /**
 ** \brief Registration parameter
@@ -47,10 +54,13 @@ struct registration_params
 } __packed;
 
 
-struct authentification_request
+
+struct authentification_params
 {
-    uint8_t challenge_param[32]; /**< SHA-256 client data */
-    uint8_t application_param[32]; /**< SHA-256 App Id */
+    /** SHA-256 client data */
+    uint8_t challenge_param[U2F_AUTH_CHA_PARAM_SIZE];
+    /** SHA-256 App Id */
+    uint8_t application_param[U2F_AUTH_APP_PARAM_SIZE];
     uint8_t key_handle_size;
     uint8_t key_handle[];
 } __packed;
