@@ -19,7 +19,7 @@ Then visit any website that uses U2F, such as:
 Build the binary:
 ```shell
 make
-./setup
+./setup.sh
 ```
 
 Test the project:
