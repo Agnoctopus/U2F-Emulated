@@ -1,7 +1,7 @@
 U2F Emulated
 ============
 
-Software that emulate U2F through a virtual USB device using UHID
+Software that emulates U2F through a virtual USB device using UHID
 system API on linux.
 
 # Usage
