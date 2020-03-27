@@ -34,7 +34,7 @@ make doc
 
 # License
 
-This project is licensed under GPL-2.O
+This project is licensed under GPL-2.0
 
 # Author
 
