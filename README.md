@@ -8,7 +8,7 @@ system API on linux.
 
 Run the program in privileged mode:
 ```shell
-sudo ./u2F-emulated
+sudo ./u2f-emulated
 ```
 
 Then visit any website that uses U2F, such as:
