@@ -8,7 +8,7 @@ system API on linux.
 
 Run the program in privileged mode:
 ```shell
-sudo ./u2f-emulated
+$ sudo ./u2f-emulated
 ```
 
 Then visit any website that uses U2F, such as:
@@ -18,18 +18,18 @@ Then visit any website that uses U2F, such as:
 
 Build the binary:
 ```shell
-make
-./setup.sh
+$ make
+$ ./setup.sh
 ```
 
 Test the project:
 ```shell
-make check
+$ make check
 ```
 
 Generate doc:
-```
-make doc
+```shell
+$ make doc
 ```
 
 # License
