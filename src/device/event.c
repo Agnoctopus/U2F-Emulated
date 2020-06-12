@@ -25,6 +25,7 @@ static void event_output_handler(int fd,
     const struct uhid_event *event)
 {
     fprintf(stderr, "UHID_OUTPUT\n");
+    printf("0x%hX\n", event->u.output.data[0]);
 
     /* Get the packet */
     const void *packet = event->u.output.data + 1;

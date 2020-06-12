@@ -343,9 +343,9 @@ struct message *raw_register_handler(const struct message *request)
 
     /* Dump request */
     size_t request_buffer_size =
-        packet_init_get_bcnt(response->init_packet);
+        packet_init_get_bcnt(request->init_packet);
     uint8_t *request_buffer = xmalloc(request_buffer_size);
-    message_read(response, request_buffer, 0, request_buffer_size);
+    message_read(request, request_buffer, 0, request_buffer_size);
     dump_bytes("Message", request_buffer, request_buffer_size);
 
     /* Dump response */

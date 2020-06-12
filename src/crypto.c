@@ -396,7 +396,7 @@ X509 *crypto_x509_from_path(const char *pathname)
         return NULL;
 
     /* X509  */
-    X509 *x509 = X509_new() ;
+    X509 *x509 = X509_new();
     x509 = PEM_read_X509(fp, &x509, NULL, NULL);
 
     /* Close */

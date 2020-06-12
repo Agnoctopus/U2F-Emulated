@@ -227,6 +227,14 @@ struct message *cmd_process(const struct message *request)
     /* Get the handler */
     cmd_handler handler = cmd_get_handler(request->init_packet->cmd);
 
+    /* Dump response */
+    size_t request_buffer_size =
+        packet_init_get_bcnt(request->init_packet);
+    uint8_t *request_buffer = malloc(request_buffer_size);
+    message_read(request, request_buffer, 0, request_buffer_size);
+    dump_bytes("Message IN:", request_buffer, request_buffer_size);
+
+
     /* Check */
     if (handler == NULL)
         return cmd_generate_error(request->init_packet->cid,
